@@ -6,27 +6,23 @@ from langchain_core.prompts import PromptTemplate
 from langchain.tools import Tool
 from pprint import pprint
 from langchain.agents import initialize_agent, AgentType
-
+import pandas as pd
 
 db = SQLDatabase.from_uri(
     "sqlite:///pdp_funczone.sqlite",
 )
 llm = ChatOpenAI(temperature=0)
 
-# Create a prompt to load table names and and column names to database
-prompt = PromptTemplate.from_template(
-    "You are a helpful assistant that provides SQL queries based on user requests. "
-    "Search for the table names and columns in the database: {table_context}. "
-    "When asked for a query, you will return a valid SQL query that answers the user's question."
-)
-prompt.invoke({"table_context": db.get_context()})
+def zone_name_lookup_tool(query):
+    try:
+        df = pd.read_excel("order_505_sub.xlsx")
+        # Simplified filter logic
+        zone_name = df[df["code"] == int(query)]["name"].values[0]
+        return zone_name
+    except Exception as e:
+        return e
 
-def zone_name_lookup(query):
-    import pandas as pd
-    df = pd.read_excel("order_505_sub.xlsx")
-    # Simplified filter logic
-    zone_name = df[df["code"] == int(query)]["name"].values[0]
-    return zone_name
+    
 
 def init_sql_tool():    
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
@@ -36,17 +32,18 @@ def init_sql_tool():
     sql_agent_tool = Tool(
         name="SQL Agent",
         func=sql_agent_executor.run,
-        description="Use this tool to run SQL queries against the table pdp_functional_zones__default_workspacepdp_functional_zones of a database to find pdp_func_zone_code WHERE ID is  supplied by user ",
+        description="Use tool to run SQL queries against the table pdp_functional_zones__default_workspacepdp_functional_zones of a database TO FIND FIELD pdp_func_zone_code WHERE ID is supplied by user.",
     )
     return sql_agent_tool
 
 def init_multi_agent():
     sql_agent_tool = init_sql_tool()
+    #sql_agent_tool.handle_tool_error = True
     
     lookup_tool = Tool(
-    name="Zone name lookup",
-    func=zone_name_lookup,
-    description="Look up zone name by zone code after you god zone code from database",
+    name="Zone name lookup tool",
+    func=zone_name_lookup_tool,
+    description="Use this tool to look up zone name by zone code after you got zone code from database.",
     )
 
     tools = [lookup_tool, sql_agent_tool]
@@ -55,15 +52,30 @@ def init_multi_agent():
         tools=tools,
         llm=llm,
         agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-        verbose=True
+        verbose=True,
+        
+        
     )
-    
+    #multi_agent.handle_parsing_errors = True
     return multi_agent
+
+
+
+string = """An output parsing error occurred. In order to pass this error back to the agent
+and have it try again, pass `handle_parsing_errors=True` to the AgentExecutor.
+This is the error: Could not parse LLM output: """
 
 def run_multi_agent(query: str):
     multi_agent = init_multi_agent()
-    return multi_agent.run(query)
+    multi_agent.handle_parsing_errors = True
+    try:
+        response = multi_agent.run(query)
+    except ValueError as e:
+        print(e)
+        return "Not found."
+    return response
 
-
-# if __name__ == '__main__':
-#     print(run_multi_agent("What is the name of zone by id of 2726883"))
+if __name__ == '__main__':
+    #print(run_multi_agent("What is the name of zone by     id of 2726883"))
+    
+    run_multi_agent("What is the zone name of id 27270ds49")
