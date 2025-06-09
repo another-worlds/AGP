@@ -8,6 +8,7 @@ from pprint import pprint
 from langchain.agents import initialize_agent, AgentType
 import pandas as pd
 
+
 db = SQLDatabase.from_uri(
     "sqlite:///pdp_funczone.sqlite",
 )
@@ -22,12 +23,16 @@ def zone_name_lookup_tool(query):
     except Exception as e:
         return e
 
-    
-
 def init_sql_tool():    
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 
     sql_agent_executor = create_sql_agent(llm=llm, toolkit=toolkit, verbose=True)
+    for i, tool in enumerate(sql_agent_executor.tools):
+        print("\n")
+        print(i)
+        print(tool)
+    sql_agent_executor.tools = [sql_agent_executor.tools[0], sql_agent_executor.tools[2], sql_agent_executor.tools[3]]
+    
 
     sql_agent_tool = Tool(
         name="SQL Agent",
@@ -78,4 +83,4 @@ def run_multi_agent(query: str):
 if __name__ == '__main__':
     #print(run_multi_agent("What is the name of zone by     id of 2726883"))
     
-    run_multi_agent("What is the zone name of id 27270ds49")
+    run_multi_agent("What is the zone name of id 2727049")

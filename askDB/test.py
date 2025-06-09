@@ -8,6 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import SequentialChain, LLMChain
 from langchain.output_parsers import PydanticOutputParser
 from langchain.pydantic_v1 import BaseModel, Field
+from langchain_core.output_parsers import PydanticToolsParser
 
 # ── Setup ───────────────────────────────────────────────────────────────────────
 llm = ChatOpenAI(temperature=0)
