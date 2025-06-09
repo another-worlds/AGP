@@ -11,13 +11,13 @@ import pandas as pd
 
 
 db = SQLDatabase.from_uri(
-    "sqlite:///pdp_funczone.sqlite",
+    "sqlite:///./pdp_funczone.sqlite",
 )
 llm = ChatOpenAI(temperature=0)
 
 def zone_name_lookup_tool(query):
     try:
-        df = pd.read_excel("order_505_sub.xlsx")
+        df = pd.read_excel("./order_505_sub.xlsx")
         # Simplified filter logic
         zone_name = df[df["code"] == int(query)]["name"].values[0]
         return zone_name
