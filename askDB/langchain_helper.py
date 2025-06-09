@@ -8,11 +8,13 @@ from langchain.tools import Tool
 from pprint import pprint
 from langchain.agents import initialize_agent, AgentType
 import pandas as pd
+import streamlit as st
 
 
-db = SQLDatabase.from_uri(
-    "sqlite:///./pdp_funczone.sqlite",
-)
+db = st.connection("pdp_funczone", type="sql")
+# db = SQLDatabase.from_uri(
+#     "sqlite:///./pdp_funczone.sqlite",
+# )
 llm = ChatOpenAI(temperature=0)
 
 def zone_name_lookup_tool(query):
