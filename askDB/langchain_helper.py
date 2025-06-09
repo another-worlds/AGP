@@ -11,7 +11,19 @@ import pandas as pd
 import streamlit as st
 
 st.set_page_config(initial_sidebar_state="expanded")
-db = st.connection("pdp_funczone", type="sql")
+
+st_db = st.connection("pdp_funczone", type="sql")
+st_db.connect()
+
+# 2) wrap it into a LangChain SQLDatabase
+#    Streamlit’s SQLConnection usually exposes either `.engine` or `._conn`
+engine = getattr(st_db, "engine", None) or getattr(st_db, "_conn", None)
+if engine is None:
+    raise RuntimeError("Could not extract SQLAlchemy engine from Streamlit connection")
+db = SQLDatabase(engine=engine)
+
+llm = ChatOpenAI(temperature=0)
+
 # db = SQLDatabase.from_uri(
 #     "sqlite:///./pdp_funczone.sqlite",
 # )
