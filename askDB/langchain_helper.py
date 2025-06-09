@@ -10,7 +10,7 @@ from langchain.agents import initialize_agent, AgentType
 import pandas as pd
 import streamlit as st
 
-
+st.set_page_config(initial_sidebar_state="expanded")
 db = st.connection("pdp_funczone", type="sql")
 # db = SQLDatabase.from_uri(
 #     "sqlite:///./pdp_funczone.sqlite",
