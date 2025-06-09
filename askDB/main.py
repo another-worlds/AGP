@@ -4,7 +4,7 @@ import textwrap
 
 
 # video_url = "https://www.youtube.com/watch?v=lG7Uxts9SXs"
-st.set_page_config(initial_sidebar_state="expanded")
+
 
 
 st.title("Shapefile assistant")
