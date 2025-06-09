@@ -1,5 +1,6 @@
 from langchain_community.agent_toolkits.sql.base import create_sql_agent
-from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+#from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
+from toolkit_helper import SQLDatabaseToolkit
 from langchain_community.utilities import SQLDatabase
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
@@ -23,6 +24,9 @@ def zone_name_lookup_tool(query):
     except Exception as e:
         return e
 
+def dont_know_tool(query):
+    return "I don't know"
+
 def init_sql_tool():    
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 
@@ -31,7 +35,7 @@ def init_sql_tool():
         print("\n")
         print(i)
         print(tool)
-    sql_agent_executor.tools = [sql_agent_executor.tools[0], sql_agent_executor.tools[2], sql_agent_executor.tools[3]]
+    #sql_agent_executor.tools = [sql_agent_executor.tools[0], sql_agent_executor.tools[2], sql_agent_executor.tools[3]]
     
 
     sql_agent_tool = Tool(
@@ -50,8 +54,13 @@ def init_multi_agent():
     func=zone_name_lookup_tool,
     description="Use this tool to look up zone name by zone code after you got zone code from database.",
     )
+    dont_tool = Tool(
+        name="Don't know tool",
+        func=dont_know_tool,
+        description="Use this tool, when you don'y know what to di"
+    )
 
-    tools = [lookup_tool, sql_agent_tool]
+    tools = [lookup_tool, sql_agent_tool, dont_tool]
 
     multi_agent = initialize_agent(
         tools=tools,
@@ -64,11 +73,6 @@ def init_multi_agent():
     #multi_agent.handle_parsing_errors = True
     return multi_agent
 
-
-
-string = """An output parsing error occurred. In order to pass this error back to the agent
-and have it try again, pass `handle_parsing_errors=True` to the AgentExecutor.
-This is the error: Could not parse LLM output: """
 
 def run_multi_agent(query: str):
     multi_agent = init_multi_agent()
